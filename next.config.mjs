@@ -1,19 +1,25 @@
 import next from 'next';
 
 const nextConfig = {
-  // Add the hostname for your logo to the list of allowed image domains.
-  // This is required for Next.js Image component to work with external URLs.
+  // Added a remote pattern for the Spoonacular API domain to allow recipe images.
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'googleusercontent.com',
+        hostname: 'placehold.co',
         port: '',
-        pathname: '/file_content/2/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'www.themealdb.com',
+        port: '',
+        pathname: '/**',
+      },
+      // New: Added Spoonacular's image domain to the allowed list.
+      {
+        protocol: 'https',
+        hostname: 'spoonacular.com',
         port: '',
         pathname: '/**',
       },

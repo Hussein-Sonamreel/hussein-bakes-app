@@ -1,6 +1,6 @@
 "use client"; // This line is required for client-side functionality like `useState` and `useEffect`.
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react'; // Removed unused `useEffect`
 import Image from 'next/image';
 import React from 'react'; // Importing React is good practice for JSX files.
 
@@ -11,6 +11,14 @@ interface Recipe {
     image: string;
 }
 
+// Define the interface for the Spoonacular API response to remove `any`.
+interface SpoonacularRecipe {
+    id: number;
+    title: string;
+    image: string;
+    imageType: string;
+}
+
 // The main application component.
 export default function Page() {
     // State variables to manage the search input, message box, and loading state.
@@ -19,13 +27,15 @@ export default function Page() {
     const [isError, setIsError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Your Spoonacular API Key.
-    const apiKey = '7e32e1d5008848d5b6ab5ce4e9bb4d5f';
+    // This is the new, secure way to access your API key.
+    // The key is now stored in an environment variable, not hardcoded in your public code.
+    const apiKey = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY;
 
     // This is where our recipe cards will be stored.
     const [recipes, setRecipes] = useState<Recipe[]>([]);
 
     // This function now fetches recipes from the Spoonacular API.
+    // Added type for the `data` parameter to resolve the `any` issue.
     const fetchRecipes = async (query: string): Promise<Recipe[]> => {
         // Construct the URL for the Spoonacular API with your key and the user's query.
         const url = `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(query)}&apiKey=${apiKey}&number=9`;
@@ -42,10 +52,10 @@ export default function Page() {
             const data = await response.json();
 
             // The Spoonacular API returns results in a `results` array.
-            const results = data.results || [];
+            const results: SpoonacularRecipe[] = data.results || [];
             
             // Map the API response to our local Recipe interface.
-            const formattedRecipes: Recipe[] = results.map((recipe: any) => ({
+            const formattedRecipes: Recipe[] = results.map(recipe => ({
                 title: recipe.title,
                 // The Spoonacular search endpoint does not return descriptions, so we'll use a placeholder.
                 description: 'No description available for this recipe.',
@@ -67,6 +77,13 @@ export default function Page() {
         // Prevent searching if the input is empty or a search is already in progress.
         if (searchInput.trim() === '' || isLoading) {
             setMessage("Please enter a search term.");
+            setIsError(true);
+            return;
+        }
+        
+        // Added a check to ensure the API key is present.
+        if (!apiKey) {
+            setMessage("API key not found. Please add NEXT_PUBLIC_SPOONACULAR_API_KEY to your environment variables.");
             setIsError(true);
             return;
         }
@@ -179,7 +196,15 @@ export default function Page() {
                     {/* We'll use the map function to render recipe cards dynamically. */}
                     {recipes.map((recipe, index) => (
                         <div key={index} className="bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-transform transform hover:scale-105 duration-300">
-                            <img src={recipe.image} alt={recipe.title} className="w-full h-48 object-cover"/>
+                            {/* Replaced <img> tag with Next.js <Image /> component for optimization */}
+                            <Image
+                                src={recipe.image}
+                                alt={recipe.title}
+                                className="w-full h-48 object-cover"
+                                width={600} // Added width and height for optimization
+                                height={400}
+                                priority={index < 3} // Prioritize loading for the first few images
+                            />
                             <div className="p-4">
                                 <h3 className="font-bold text-lg text-white mb-2">{recipe.title}</h3>
                                 <p className="text-sm text-gray-400">{recipe.description}</p>
