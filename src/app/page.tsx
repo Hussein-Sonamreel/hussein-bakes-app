@@ -64,10 +64,15 @@ export default function Page() {
 
             return formattedRecipes;
 
-        } catch (error: any) {
+        } catch (error) {
+            // Updated error handling to be type-safe without using 'any'.
+            let errorMessage = "An unknown error occurred.";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
             console.error("Failed to fetch recipes:", error);
             setIsError(true);
-            setMessage(error.message || "Failed to fetch recipes. Please try again.");
+            setMessage(errorMessage || "Failed to fetch recipes. Please try again.");
             return []; // Return an empty array on error.
         }
     };
@@ -105,9 +110,14 @@ export default function Page() {
                 setMessage(`No recipes found for "${searchInput}".`);
             }
         } catch (error) {
+            // Updated error handling to be type-safe without using 'any'.
+            let errorMessage = "An unknown error occurred.";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
             console.error("Error fetching recipes:", error);
             setIsError(true);
-            setMessage("Failed to fetch recipes. Please try again.");
+            setMessage(errorMessage || "Failed to fetch recipes. Please try again.");
             setRecipes([]);
         } finally {
             setIsLoading(false); // Always set loading to false, regardless of success or failure.
